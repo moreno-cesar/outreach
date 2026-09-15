@@ -126,6 +126,43 @@
     display:flex;
   }
 
+  /* ---------- Stats bar ---------- */
+  .stats-bar{
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:1px;
+    background:var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .stat-card{
+    background:var(--surface);
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+    min-width:0;
+  }
+  .stat-card:hover{ background:var(--surface-hover); }
+  .stat-card.active{ background:var(--accent-soft); }
+  .stat-icon{
+    width:34px; height:34px; border-radius:9px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stat-icon.tone-attention{ background:var(--warn-soft); color:var(--warn); }
+  .stat-icon.tone-cold{ background:var(--danger-soft); color:var(--danger); }
+  .stat-icon.tone-followup{ background:var(--accent-soft); color:var(--accent-strong); }
+  .stat-card.active .stat-icon.tone-attention{ background:var(--warn); color:#fff; }
+  .stat-card.active .stat-icon.tone-cold{ background:var(--danger); color:#fff; }
+  .stat-card.active .stat-icon.tone-followup{ background:var(--accent); color:#fff; }
+  .stat-body{ min-width:0; }
+  .stat-value{ font-size:22px; font-weight:650; letter-spacing:-0.01em; line-height:1.1; }
+  .stat-label{ font-size:12px; color:var(--text-secondary); font-weight:550; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @media (max-width: 680px){
+    .stats-bar{ grid-template-columns:1fr; }
+  }
+
   /* ---------- Sidebar ---------- */
   .sidebar{
     flex:0 0 232px;
@@ -389,6 +426,7 @@
 </style>
 
 <div class="app" id="app">
+  <div class="stats-bar" id="statsBar"></div>
   <div class="content">
     <aside class="sidebar">
       <div class="brand">
@@ -500,6 +538,8 @@
   "use strict";
 
   var STALE_DAYS = 30;
+  var COLD_DAYS = 60;
+  var FOLLOWUP_WINDOW = 7; // days before hitting STALE_DAYS
   var CATEGORY_ORDER = ["Manager","Client","Vendor"];
   var CATEGORY_COLORS = {
     "Manager": ["var(--accent)","var(--accent-strong)"],
@@ -518,6 +558,7 @@
   var state = {
     contacts: [],
     activeCategory: "All",
+    quickFilter: null, // null | "attention" | "cold" | "followup"
     search: "",
     sort: "name",
     selectedId: null,
@@ -529,6 +570,7 @@
   var els = {
     catList: document.getElementById("catList"),
     catBar: document.getElementById("catBar"),
+    statsBar: document.getElementById("statsBar"),
     contactList: document.getElementById("contactList"),
     listTitle: document.getElementById("listTitle"),
     listCount: document.getElementById("listCount"),
@@ -600,6 +642,23 @@
   function isStale(c){
     var days = daysSince(c.lastContacted);
     return days !== null && days >= STALE_DAYS;
+  }
+  function isCold(c){
+    var days = daysSince(c.lastContacted);
+    return days !== null && days >= COLD_DAYS;
+  }
+  function isFollowUpSoon(c){
+    var days = daysSince(c.lastContacted);
+    return days !== null && days >= (STALE_DAYS - FOLLOWUP_WINDOW) && days < STALE_DAYS;
+  }
+  function computeStats(contacts){
+    var attention = 0, cold = 0, followup = 0;
+    contacts.forEach(function(c){
+      if(isStale(c)) attention++;
+      if(isCold(c)) cold++;
+      if(isFollowUpSoon(c)) followup++;
+    });
+    return { attention: attention, cold: cold, followup: followup };
   }
   function categoryColors(cat){
     if(CATEGORY_COLORS[cat]) return CATEGORY_COLORS[cat];
@@ -731,6 +790,9 @@
     var q = state.search.trim().toLowerCase();
     var list = state.contacts.filter(function(c){
       if(state.activeCategory !== "All" && (c.category || "Uncategorized") !== state.activeCategory) return false;
+      if(state.quickFilter === "attention" && !isStale(c)) return false;
+      if(state.quickFilter === "cold" && !isCold(c)) return false;
+      if(state.quickFilter === "followup" && !isFollowUpSoon(c)) return false;
       if(!q) return true;
       var hay = (fullName(c) + " " + (c.company||"") + " " + (c.email||"")).toLowerCase();
       return hay.indexOf(q) !== -1;
@@ -747,6 +809,33 @@
     }
     return list;
   }
+
+  // ---------- render: stats bar ----------
+  function statCardHtml(key, tone, iconSvg, value, label){
+    var active = state.quickFilter === key;
+    return '<button class="stat-card' + (active ? " active" : "") + '" data-quick="' + key + '">' +
+      '<span class="stat-icon tone-' + tone + '">' + iconSvg + '</span>' +
+      '<span class="stat-body"><span class="stat-value tnum">' + value + '</span><span class="stat-label">' + label + '</span></span>' +
+    '</button>';
+  }
+  function renderStats(){
+    var stats = computeStats(state.contacts);
+    els.statsBar.innerHTML =
+      statCardHtml("attention", "attention", warnSvg(), stats.attention, "Need attention") +
+      statCardHtml("cold", "cold", snowSvg(), stats.cold, "Gone cold") +
+      statCardHtml("followup", "followup", checkSvg(), stats.followup, "Follow up this week");
+  }
+  function bindStatsClicks(){
+    els.statsBar.addEventListener("click", function(e){
+      var el = e.target.closest("[data-quick]");
+      if(!el) return;
+      var key = el.getAttribute("data-quick");
+      state.quickFilter = state.quickFilter === key ? null : key;
+      state.activeCategory = "All";
+      renderAll();
+    });
+  }
+  function snowSvg(){ return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M4.5 6.5l15 11M19.5 6.5l-15 11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'; }
 
   // ---------- render: sidebar / category bar ----------
   function renderCategories(){
@@ -787,6 +876,7 @@
         var el = e.target.closest("[data-cat]");
         if(!el) return;
         state.activeCategory = el.getAttribute("data-cat");
+        state.quickFilter = null;
         renderAll();
       });
     });
@@ -795,7 +885,8 @@
   // ---------- render: list ----------
   function renderList(){
     var list = filteredContacts();
-    els.listTitle.textContent = state.activeCategory === "All" ? "All Contacts" : state.activeCategory;
+    var quickLabels = { attention: "Needs Attention", cold: "Gone Cold", followup: "Follow Up This Week" };
+    els.listTitle.textContent = state.quickFilter ? quickLabels[state.quickFilter] : (state.activeCategory === "All" ? "All Contacts" : state.activeCategory);
     els.listCount.textContent = list.length + (list.length === 1 ? " person" : " people");
 
     if(list.length === 0){
@@ -1068,6 +1159,7 @@
 
   // ---------- main render ----------
   function renderAll(){
+    renderStats();
     renderCategories();
     renderList();
     renderProfile();
@@ -1075,6 +1167,7 @@
 
   bindCategoryClicks();
   bindListClicks();
+  bindStatsClicks();
 
   store.subscribe(function(contacts){
     state.contacts = contacts;
