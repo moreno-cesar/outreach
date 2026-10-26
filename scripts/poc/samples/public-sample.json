@@ -1,0 +1,101 @@
+{
+  "retrieved_at": "2026-10-26T18:40:11.573050+00:00",
+  "tdlr": {
+    "source": "Texas TDLR open data",
+    "dataset": "data.texas.gov 7358-krk7",
+    "endpoint": "https://data.texas.gov/resource/7358-krk7.json",
+    "retrieved_at": "2026-10-26T18:40:18.438826+00:00",
+    "dataset_last_modified": "Mon, 19 Oct 2026 18:55:59 GMT",
+    "electrical_contractor_fill": {
+      "n": 14031,
+      "business_name": 14031,
+      "owner_name": 14031,
+      "street": 14012,
+      "city_line": 14013,
+      "county": 14012,
+      "phone": 14025,
+      "expiration": 14031,
+      "license_type": "Electrical Contractor",
+      "dataset_last_modified": "Mon, 19 Oct 2026 18:55:59 GMT"
+    },
+    "ac_contractor_fill": {
+      "n": 20462,
+      "business_name": 20050,
+      "owner_name": 20462,
+      "street": 0,
+      "city_line": 0,
+      "county": 19685,
+      "phone": 0,
+      "expiration": 20462,
+      "license_type": "A/C Contractor",
+      "dataset_last_modified": "Mon, 19 Oct 2026 18:55:59 GMT"
+    },
+    "electrical_sample": [
+      {
+        "license_type": "Electrical Contractor",
+        "license_number": "17000",
+        "license_subtype": "EC",
+        "business_name": "TORRES ELECTRICAL SERVICE",
+        "owner_name": "TORRES ELECTRICAL SERVICE",
+        "business_address_line1": "11910 DOVER STREET",
+        "business_city_state_zip": "HOUSTON TX 77031-2516",
+        "business_county": "HARRIS",
+        "business_telephone": "7135622862",
+        "license_expiration_date_mmddccyy": "07/31/2027"
+      },
+      {
+        "license_type": "Electrical Contractor",
+        "license_number": "17001",
+        "license_subtype": "EC",
+        "business_name": "ELECTRICAL INNOVATIONS OF TEXAS",
+        "owner_name": "ELECTRICAL INNOVATIONS OF TEXAS",
+        "business_address_line1": "2923 DEDMAN",
+        "business_city_state_zip": "PASADENA TX 77503",
+        "business_county": "HARRIS",
+        "business_telephone": "2815426301",
+        "license_expiration_date_mmddccyy": "08/31/2027"
+      },
+      {
+        "license_type": "Electrical Contractor",
+        "license_number": "17005",
+        "license_subtype": "EC",
+        "business_name": "JOHN J MITCHELL",
+        "owner_name": "JOHN J MITCHELL",
+        "business_address_line1": "PO BOX 17215",
+        "business_city_state_zip": "AUSTIN TX 78760",
+        "business_county": "TRAVIS",
+        "business_telephone": "5124478069",
+        "license_expiration_date_mmddccyy": "07/14/2027"
+      }
+    ]
+  },
+  "orgbook": {
+    "source": "OrgBook BC",
+    "endpoint": "https://orgbook.gov.bc.ca/api/v3/search/autocomplete",
+    "retrieved_at": "2026-10-26T18:40:19.550792+00:00",
+    "query": "plumbing",
+    "keyword_hits_excluding_inactive": 5643,
+    "sample": {
+      "legal_name": "T.N.T. PLUMBING",
+      "bc_registries_id": "FM0061400",
+      "credential_id": "785410f8-0741-4705-b985-8fe50d9fe2f5",
+      "entity_status": "ACT",
+      "entity_type": "SP",
+      "home_jurisdiction": "BC",
+      "registration_date": "1985-05-24T07:00:00+00:00",
+      "phone": null,
+      "address": null,
+      "website": null,
+      "employee_count": null,
+      "attribute_types": [
+        "entity_name_effective",
+        "entity_status",
+        "entity_status_effective",
+        "entity_type",
+        "home_jurisdiction",
+        "reason_description",
+        "registration_date"
+      ]
+    }
+  }
+}
